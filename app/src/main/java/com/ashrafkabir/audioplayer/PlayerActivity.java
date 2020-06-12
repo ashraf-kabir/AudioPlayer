@@ -1,7 +1,13 @@
 package com.ashrafkabir.audioplayer;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.palette.graphics.Palette;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -9,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -21,7 +28,7 @@ import static com.ashrafkabir.audioplayer.MainActivity.musicFiles;
 
 public class PlayerActivity extends AppCompatActivity {
 
-    TextView song_name, artist_name, duration_palyed, duration_total;
+    TextView song_name, artist_name, duration_played, duration_total;
     ImageView cover_art, nextBtn, prevBtn, backBtn, shuffleBtn, repeatBtn;
     FloatingActionButton playPauseBtn;
     SeekBar seekBar;
@@ -64,7 +71,7 @@ public class PlayerActivity extends AppCompatActivity {
                 if (mediaPlayer != null) {
                     int mCurrentPosition = mediaPlayer.getCurrentPosition() / 1000;
                     seekBar.setProgress(mCurrentPosition);
-                    duration_palyed.setText(formattedTime(mCurrentPosition));
+                    duration_played.setText(formattedTime(mCurrentPosition));
                 }
                 handler.postDelayed(this, 1000);
             }
@@ -290,7 +297,7 @@ public class PlayerActivity extends AppCompatActivity {
     private void initViews() {
         song_name = findViewById(R.id.song_name);
         artist_name = findViewById(R.id.song_artist);
-        duration_palyed = findViewById(R.id.durationPlayed);
+        duration_played = findViewById(R.id.durationPlayed);
         duration_total = findViewById(R.id.durationTotal);
         cover_art = findViewById(R.id.cover_art);
         nextBtn = findViewById(R.id.id_next);
@@ -308,16 +315,59 @@ public class PlayerActivity extends AppCompatActivity {
         int durationTotal = Integer.parseInt(listSongs.get(position).getDuration()) / 1000;
         duration_total.setText(formattedTime(durationTotal));
         byte[] art = retriever.getEmbeddedPicture();
+        Bitmap bitmap;
         if (art != null) {
             Glide.with(this)
                     .asBitmap()
                     .load(art)
                     .into(cover_art);
+            bitmap = BitmapFactory.decodeByteArray(art, 0, art.length);
+            Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
+                @Override
+                public void onGenerated(@Nullable Palette palette) {
+                    Palette.Swatch swatch = palette.getDominantSwatch();
+                    if (swatch != null) {
+                        ImageView gradient = findViewById(R.id.imageViewGradient);
+                        RelativeLayout mContainer = findViewById(R.id.mContainer);
+                        gradient.setBackgroundResource(R.drawable.gradient_bg);
+                        mContainer.setBackgroundResource(R.drawable.main_bg);
+                        GradientDrawable gradientDrawable = new GradientDrawable(
+                                GradientDrawable.Orientation.BOTTOM_TOP, new int[]{swatch.getRgb(), 0x00000000});
+                        gradient.setBackground(gradientDrawable);
+
+                        GradientDrawable gradientDrawableBg = new GradientDrawable(
+                                GradientDrawable.Orientation.BOTTOM_TOP, new int[]{swatch.getRgb(), swatch.getRgb()});
+                        mContainer.setBackground(gradientDrawableBg);
+                        song_name.setTextColor(swatch.getTitleTextColor());
+                        artist_name.setTextColor(swatch.getBodyTextColor());
+                    } else {
+                        ImageView gradient = findViewById(R.id.imageViewGradient);
+                        RelativeLayout mContainer = findViewById(R.id.mContainer);
+                        gradient.setBackgroundResource(R.drawable.gradient_bg);
+                        mContainer.setBackgroundResource(R.drawable.main_bg);
+                        GradientDrawable gradientDrawable = new GradientDrawable(
+                                GradientDrawable.Orientation.BOTTOM_TOP, new int[]{0xff000000, 0x00000000});
+                        gradient.setBackground(gradientDrawable);
+
+                        GradientDrawable gradientDrawableBg = new GradientDrawable(
+                                GradientDrawable.Orientation.BOTTOM_TOP, new int[]{0xff000000, 0xff000000});
+                        mContainer.setBackground(gradientDrawableBg);
+                        song_name.setTextColor(Color.WHITE);
+                        artist_name.setTextColor(Color.DKGRAY);
+                    }
+                }
+            });
         } else {
             Glide.with(this)
                     .asBitmap()
                     .load(R.drawable.albumartsample)
                     .into(cover_art);
+            ImageView gradient = findViewById(R.id.imageViewGradient);
+            RelativeLayout mContainer = findViewById(R.id.mContainer);
+            gradient.setBackgroundResource(R.drawable.gradient_bg);
+            mContainer.setBackgroundResource(R.drawable.main_bg);
+            song_name.setTextColor(Color.WHITE);
+            artist_name.setTextColor(Color.DKGRAY);
         }
     }
 }
