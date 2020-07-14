@@ -28,6 +28,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.Random;
 
+import static com.ashrafkabir.audioplayer.AlbumDetailsAdapter.albumFiles;
 import static com.ashrafkabir.audioplayer.MainActivity.musicFiles;
 import static com.ashrafkabir.audioplayer.MainActivity.repeatBoolean;
 import static com.ashrafkabir.audioplayer.MainActivity.shuffleBoolean;
@@ -334,7 +335,12 @@ public class PlayerActivity extends AppCompatActivity implements MediaPlayer.OnC
 
     private void getIntentMethod() {
         position = getIntent().getIntExtra("position", -1);
-        listSongs = musicFiles;
+        String sender = getIntent().getStringExtra("sender");
+        if (sender != null && sender.equals("albumDetails")) {
+            listSongs = albumFiles;
+        } else {
+            listSongs = musicFiles;
+        }
         if (listSongs != null) {
             playPauseBtn.setImageResource(R.drawable.ic_pause);
             uri = Uri.parse(listSongs.get(position).getPath());
